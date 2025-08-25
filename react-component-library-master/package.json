@@ -10,7 +10,7 @@
   "description": "A skeleton to create your own React component library using Rollup, TypeScript, Sass and Storybook",
   "scripts": {
     "build": "rollup -c",
-    "stencil:build": "stencil build --config ./src/stencil.config.ts",
+    "stencil:build": "stencil build --config stencil.config.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "storybook": "start-storybook -p 6006",
