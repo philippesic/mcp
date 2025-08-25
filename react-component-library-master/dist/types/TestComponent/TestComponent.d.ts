@@ -1,5 +1,7 @@
-import React from "react";
-import { TestComponentProps } from "./TestComponent.types";
-import "./TestComponent.css";
-declare const TestComponent: React.FC<TestComponentProps>;
-export default TestComponent;
+export declare class TestComponent {
+    /** Heading text for the component */
+    heading: string;
+    /** Content text for the component */
+    content: string;
+    render(): any;
+}

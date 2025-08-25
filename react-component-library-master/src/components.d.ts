@@ -6,19 +6,48 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
+    interface TestComponent {
+        /**
+          * Content text for the component
+         */
+        "content": string;
+        /**
+          * Heading text for the component
+         */
+        "heading": string;
+    }
 }
 declare global {
+    interface HTMLTestComponentElement extends Components.TestComponent, HTMLStencilElement {
+    }
+    var HTMLTestComponentElement: {
+        prototype: HTMLTestComponentElement;
+        new (): HTMLTestComponentElement;
+    };
     interface HTMLElementTagNameMap {
+        "test-component": HTMLTestComponentElement;
     }
 }
 declare namespace LocalJSX {
+    interface TestComponent {
+        /**
+          * Content text for the component
+         */
+        "content"?: string;
+        /**
+          * Heading text for the component
+         */
+        "heading"?: string;
+    }
     interface IntrinsicElements {
+        "test-component": TestComponent;
     }
 }
 export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "test-component": LocalJSX.TestComponent & JSXBase.HTMLAttributes<HTMLTestComponentElement>;
         }
     }
 }

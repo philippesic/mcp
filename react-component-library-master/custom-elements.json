@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/TestComponent/TestComponent.tsx",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "TestComponent",
+          "members": [
+            {
+              "kind": "field",
+              "name": "heading",
+              "type": {
+                "text": "string"
+              },
+              "description": "Heading text for the component"
+            },
+            {
+              "kind": "field",
+              "name": "content",
+              "type": {
+                "text": "string"
+              },
+              "description": "Content text for the component"
+            },
+            {
+              "kind": "method",
+              "name": "render"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "TestComponent",
+          "declaration": {
+            "name": "TestComponent",
+            "module": "src/TestComponent/TestComponent.tsx"
+          }
+        }
+      ]
+    }
+  ]
+}
