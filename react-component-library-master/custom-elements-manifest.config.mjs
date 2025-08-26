@@ -1,7 +1,6 @@
-// custom-elements-manifest.config.mjs
 export default {
-  globs: ["src/TestComponent/TestComponent.tsx"], // Path to your component
-  outdir: "./", // Output directory for the manifest
+  globs: ["src/TestComponent/TestComponent.tsx"],
+  outdir: "./",
   exclude: [
     "src/**/*.stories.tsx",
     "src/**/*.types.ts",
@@ -13,7 +12,6 @@ export default {
     {
       name: "filter-bloat",
       packageLinkPhase({ customElementsManifest }) {
-        // Filter out unwanted modules
         customElementsManifest.modules = customElementsManifest.modules.filter(
           (mod) =>
             mod.path.startsWith("src/") &&

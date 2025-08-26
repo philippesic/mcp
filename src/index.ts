@@ -7,11 +7,67 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
-import components from "./components.json";
+import * as fs from "fs";
+import * as path from "path";
+
+const manifestPath = path.join(
+  process.cwd(),
+  "react-component-library-master",
+  "custom-elements.json"
+);
+let manifest: any = {};
+try {
+  manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+} catch (e) {
+  console.error("Could not load custom-elements.json:", e);
+  manifest = { modules: [] };
+}
+
+function getComponentsFromManifest(manifest: any) {
+  const components: any[] = [];
+  for (const mod of manifest.modules || []) {
+    for (const decl of mod.declarations || []) {
+      if (decl.kind === "class") {
+        let tag = "";
+        if (mod.exports) {
+          const exp = mod.exports.find(
+            (e: any) =>
+              e.declaration &&
+              e.declaration.name === decl.name &&
+              e.kind === "js"
+          );
+          if (exp && exp.declaration && exp.declaration.name) {
+            tag = exp.declaration.name;
+          }
+        }
+
+        if (!tag && decl.name) tag = decl.name;
+
+        const props: Record<string, any> = {};
+        for (const member of decl.members || []) {
+          if (member.kind === "field") {
+            props[member.name] = {
+              type: member.type?.text ?? "unknown",
+              description: member.description ?? "",
+            };
+          }
+        }
+
+        components.push({
+          tag,
+          name: decl.name,
+          description: decl.description ?? "",
+          props,
+          modulePath: mod.path,
+        });
+      }
+    }
+  }
+  return components;
+}
 
 class ComponentServer {
   private server: Server;
-  private componentsRaw = components as any;
   private componentsList: any[];
   private tagIndex = new Map<string, number>();
 
@@ -28,9 +84,7 @@ class ComponentServer {
       }
     );
 
-    this.componentsList = Array.isArray(this.componentsRaw)
-      ? this.componentsRaw.slice()
-      : Object.values(this.componentsRaw);
+    this.componentsList = getComponentsFromManifest(manifest);
 
     this.componentsList.forEach((comp: any, idx: number) => {
       const tag =
@@ -39,7 +93,6 @@ class ComponentServer {
           : String(idx);
       this.tagIndex.set(tag, idx);
       this.tagIndex.set(tag.toLowerCase(), idx);
-
       this.tagIndex.set(String(idx), idx);
     });
 
@@ -65,7 +118,7 @@ class ComponentServer {
                 componentName: {
                   type: "string",
                   description:
-                    "Component tag or numeric index (e.g. 'Button' or '0')",
+                    "Component tag or numeric index (e.g. 'TestComponent' or '0')",
                 },
               },
               required: ["componentName"],
@@ -77,6 +130,22 @@ class ComponentServer {
             inputSchema: {
               type: "object",
               properties: {},
+            },
+          },
+          {
+            name: "get_stories",
+            description:
+              "Fetch the .stories.tsx file for a component by tag or index",
+            inputSchema: {
+              type: "object",
+              properties: {
+                componentName: {
+                  type: "string",
+                  description:
+                    "Component tag or numeric index (e.g. 'TestComponent' or '0')",
+                },
+              },
+              required: ["componentName"],
             },
           },
         ],
@@ -109,9 +178,7 @@ class ComponentServer {
             content: [
               {
                 type: "text",
-                text:
-                  JSON.stringify(component, null, 2) +
-                  "\nUsage note: the component name is defined in kebab-case (component-name), but should be called in PascalCase (ComponentName) in usage.",
+                text: JSON.stringify(component, null, 2),
               },
             ],
           };
@@ -127,6 +194,58 @@ class ComponentServer {
               },
             ],
           };
+        }
+
+        case "get_stories": {
+          const componentNameRaw = request.params.arguments?.componentName;
+          const lookup =
+            typeof componentNameRaw === "string" ? componentNameRaw : "";
+
+          const idx = this.resolveIndexForTag(lookup);
+          if (idx === null) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Component "${lookup}" not found. Available tags: ${this.listTags().join(
+                    ", "
+                  )}`,
+                },
+              ],
+            };
+          }
+
+          const component = this.componentsList[idx];
+          const tag = component?.tag ?? String(idx);
+
+          const storiesPath = path.join(
+            process.cwd(),
+            "react-component-library-master",
+            "src",
+            tag,
+            `${tag}.stories.tsx`
+          );
+
+          try {
+            const storiesContent = fs.readFileSync(storiesPath, "utf8");
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: storiesContent,
+                },
+              ],
+            };
+          } catch (e: any) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Could not read stories file for "${tag}": ${e.message}`,
+                },
+              ],
+            };
+          }
         }
 
         default:

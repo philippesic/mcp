@@ -22,9 +22,17 @@ async function testModel() {
         method: "tools/call",
         params: {
             name: "get_component",
-            arguments: { componentName: "Button" },
+            arguments: { componentName: "TestComponent" },
         },
     }, zod_1.z.any());
     console.log("get_component ->", getResp);
+    const storiesResp = await client.request({
+        method: "tools/call",
+        params: {
+            name: "get_stories",
+            arguments: { componentName: "TestComponent" },
+        },
+    }, zod_1.z.any());
+    console.log("get_stories ->", storiesResp);
 }
 testModel().catch(console.error);

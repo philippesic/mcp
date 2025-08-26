@@ -10,21 +10,14 @@ const packageJson = require("./package.json");
 export default {
   input: "src/index.ts",
   output: [
-    {
-      file: packageJson.main,
-      format: "cjs",
-      sourcemap: true
-    },
-    {
-      file: packageJson.module,
-      format: "esm",
-      sourcemap: true
-    }
+    { file: "build/index.js", format: "cjs" },
+    { file: "build/index.esm.js", format: "esm" },
   ],
+  external: ["@stencil/core"],
   plugins: [
     peerDepsExternal(),
     resolve({
-      browser: true
+      browser: true,
     }),
     commonjs(),
     typescript({ useTsconfigDeclarationDir: true }),
@@ -34,9 +27,9 @@ export default {
         {
           src: "src/index.css",
           dest: "build",
-          rename: "index.css"
-        }
-      ]
-    })
-  ]
+          rename: "index.css",
+        },
+      ],
+    }),
+  ],
 };
